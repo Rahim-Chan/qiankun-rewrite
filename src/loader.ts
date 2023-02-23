@@ -18,7 +18,7 @@ import type {
   ObjectType,
 } from './interfaces';
 import { createSandboxContainer, css } from './sandbox';
-import { trustedGlobals } from './sandbox/common';
+import { appInstanceMap, trustedGlobals } from './sandbox/common';
 import {
   Deferred,
   genAppInstanceIdByName,
@@ -441,6 +441,9 @@ export async function loadApp<T extends ObjectType>(
           if ((await validateSingularMode(singular, app)) && prevAppUnmountedDeferred) {
             prevAppUnmountedDeferred.resolve();
           }
+        },
+        async () => {
+          appInstanceMap.delete(appName);
         },
       ],
     };

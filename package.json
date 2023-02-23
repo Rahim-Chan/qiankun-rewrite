@@ -1,6 +1,6 @@
 {
-  "name": "@shopee/banking-portal-qiankun",
-  "version": "0.0.5",
+  "name": "qiankun-rewrite",
+  "version": "0.0.1",
   "description": "A completed implementation of Micro Frontends",
   "keywords": [
     "micro frontend",
@@ -26,13 +26,13 @@
     "lib"
   ],
   "scripts": {
-    "examples:install": "npm-run-all --serial build install:*",
+    "examples:install": "npm-run-all --parallel install:*",
     "examples:start": "npm-run-all --parallel start:*",
-    "examples:start-multiple": "run-p start-main-multiple start:react15 start:vue",
     "install:main": "cd examples/main && yarn",
-    "start:main": "cd examples/main && yarn start",
-    "start-main-multiple": "cd examples/main && yarn start:multiple",
+    "install:my-app": "cd examples/my-app && yarn",
     "install:react16": "cd examples/react16 && yarn",
+    "start:main": "cd examples/main && yarn start",
+    "start:my-app": "cd examples/my-app && yarn start",
     "start:react16": "cd examples/react16 && yarn start",
     "build": "father-build",
     "release": "np --no-cleanup --yolo --no-publish",

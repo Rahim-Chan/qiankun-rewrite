@@ -6,8 +6,8 @@
 import type { Freer } from '../../../interfaces';
 import { nativeGlobal } from '../../../utils';
 import { getCurrentRunningApp } from '../../common';
-import { patchDocument } from './patchDocument';
-import { patchElementPrototypeMethods } from './patchElement';
+import { patchDocumentPrototypeMethods } from '../patch/patchDocument';
+import { patchElementPrototypeMethods } from '../patch/patchElement';
 import type { ContainerConfig } from './common';
 import {
   getAppWrapperBodyElement,
@@ -101,7 +101,7 @@ export function patchStrictSandbox(
   // all dynamic style sheets are stored in proxy container
   const { dynamicStyleSheetElements } = containerConfig;
 
-  const unPatchDocument = patchDocument();
+  const unPatchDocument = patchDocumentPrototypeMethods();
   const unPatchElementPrototypeMethods = patchElementPrototypeMethods();
 
   const unpatchDocumentCreate = patchDocumentCreateElement();

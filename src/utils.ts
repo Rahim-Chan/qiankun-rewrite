@@ -144,10 +144,7 @@ export function getDefaultTplWrapper(name: string) {
         .replace('</body>', `</${qiankunBodyTagName}>`);
     } else {
       // Some template might not be a standard html document, thus we need to add a simulated head tag for them
-      tplWithSimulatedHead = `
-      <${qiankunHeadTagName}></${qiankunHeadTagName}>
-      <${qiankunBodyTagName}>${tpl}</${qiankunBodyTagName}>
-      `;
+      tplWithSimulatedHead = `<${qiankunHeadTagName}></${qiankunHeadTagName}><${qiankunBodyTagName}>${tpl}</${qiankunBodyTagName}>`;
     }
 
     return `<div id="${getWrapperId(

@@ -1,13 +1,13 @@
 import { qiankunBodyTagName, qiankunHeadTagName } from '../../../utils';
-import type { AppInstance } from '../../common';
 import { appInstanceMap, getCurrentRunningApp } from '../../common';
 
-function getHijackParent(node: Node, app: AppInstance): HTMLElement | null | undefined {
+function getHijackParent(node: Node, appName: string): HTMLElement | null | undefined {
+  const { elementGetter } = appInstanceMap.get(appName)!;
   if (node === document.head) {
-    return app.elementGetter()?.querySelector<HTMLElement>(qiankunHeadTagName);
+    return elementGetter()?.querySelector<HTMLElement>(qiankunHeadTagName);
   }
   if (node === document.body) {
-    return app.elementGetter()?.querySelector<HTMLElement>(qiankunBodyTagName);
+    return elementGetter()?.querySelector<HTMLElement>(qiankunBodyTagName);
   }
   return null;
 }
@@ -15,7 +15,8 @@ function getHijackParent(node: Node, app: AppInstance): HTMLElement | null | und
 function getQueryTarget(node: Node): Node | null {
   const ins = getCurrentRunningApp();
   if ((node === document.body || node === document.head) && ins) {
-    const container = ins.elementGetter?.();
+    const { elementGetter } = appInstanceMap.get(ins.name)!;
+    const container = elementGetter?.();
     if (container) {
       if (node === document.body) {
         return container.querySelector(qiankunBodyTagName);
@@ -176,9 +177,9 @@ function patchElementRemoveChild() {
     Element.prototype.removeChild = function removeChild<T extends Node>(oldChild: T): T {
       if (oldChild?.__QIANKUN_APP_NAME__) {
         const app = appInstanceMap.get(oldChild.__QIANKUN_APP_NAME__);
-        const hijackParent = getHijackParent(this, app!);
-        if (hijackParent) {
-          if (!hijackParent.contains(oldChild)) {
+        if (app) {
+          const hijackParent = getHijackParent(this, app.name);
+          if (!hijackParent?.contains(oldChild)) {
             if (this.contains(oldChild)) {
               return rawElementRemoveChild.call(this, oldChild) as T;
             }

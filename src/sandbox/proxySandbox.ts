@@ -6,7 +6,7 @@
 import type { SandBox } from '../interfaces';
 import { SandBoxType } from '../interfaces';
 import { isPropertyFrozen, nativeGlobal, nextTask } from '../utils';
-import { getCurrentRunningApp, getTargetValue, trustedGlobals, setCurrentRunningApp, appInstanceMap } from './common';
+import { getCurrentRunningApp, getTargetValue, trustedGlobals, setCurrentRunningApp } from './common';
 
 type SymbolTarget = 'target' | 'globalContext';
 
@@ -143,7 +143,7 @@ export default class ProxySandbox implements SandBox {
         ...this.updatedValueSet.keys(),
       ]);
     }
-    appInstanceMap.delete(this.name);
+
     if (process.env.NODE_ENV === 'test' || --activeSandboxCount === 0) {
       // reset the global value to the prev value
       Object.keys(this.globalWhitelistPrevDescriptor).forEach((p) => {
@@ -161,10 +161,11 @@ export default class ProxySandbox implements SandBox {
   }
 
   // the descriptor of global variables in whitelist before it been modified
-  globalWhitelistPrevDescriptor: { [p in typeof globalVariableWhiteList[number]]: PropertyDescriptor | undefined } = {};
+  globalWhitelistPrevDescriptor: { [p in (typeof globalVariableWhiteList)[number]]: PropertyDescriptor | undefined } =
+    {};
   globalContext: typeof window;
 
-  constructor(name: string, globalContext = window, elementGetter: () => HTMLElement | ShadowRoot) {
+  constructor(name: string, globalContext = window) {
     this.name = name;
     this.globalContext = globalContext;
     this.type = SandBoxType.Proxy;
@@ -178,7 +179,7 @@ export default class ProxySandbox implements SandBox {
     const proxy = new Proxy(fakeWindow, {
       set: (target: FakeWindow, p: PropertyKey, value: any): boolean => {
         if (this.sandboxRunning) {
-          this.registerRunningApp(name, proxy, elementGetter);
+          this.registerRunningApp(name, proxy);
           // We must keep its description while the property existed in globalContext before
           if (!target.hasOwnProperty(p) && globalContext.hasOwnProperty(p)) {
             const descriptor = Object.getOwnPropertyDescriptor(globalContext, p);
@@ -218,7 +219,7 @@ export default class ProxySandbox implements SandBox {
       get: (target: FakeWindow, p: PropertyKey): any => {
         // console.log({ target, p, name });
 
-        this.registerRunningApp(name, proxy, elementGetter);
+        this.registerRunningApp(name, proxy);
 
         if (p === Symbol.unscopables) return unscopables;
         // avoid who using window.window or window.self to escape the sandbox environment to touch the really window
@@ -326,7 +327,7 @@ export default class ProxySandbox implements SandBox {
       },
 
       deleteProperty: (target: FakeWindow, p: string | number | symbol): boolean => {
-        this.registerRunningApp(name, proxy, elementGetter);
+        this.registerRunningApp(name, proxy);
         if (target.hasOwnProperty(p)) {
           // @ts-ignore
           delete target[p];
@@ -345,15 +346,14 @@ export default class ProxySandbox implements SandBox {
     });
 
     this.proxy = proxy;
-    appInstanceMap.set(name, { name, window: proxy, elementGetter });
     activeSandboxCount++;
   }
 
-  private registerRunningApp(name: string, proxy: Window, elementGetter: () => HTMLElement | ShadowRoot) {
+  private registerRunningApp(name: string, proxy: Window) {
     if (this.sandboxRunning) {
       const currentRunningApp = getCurrentRunningApp();
       if (!currentRunningApp || currentRunningApp.name !== name) {
-        setCurrentRunningApp({ name, window: proxy, elementGetter });
+        setCurrentRunningApp({ name, window: proxy });
       }
       // FIXME if you have any other good ideas
       // remove the mark in next tick, thus we can identify whether it in micro app or not

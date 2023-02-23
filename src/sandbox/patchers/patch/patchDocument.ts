@@ -1,4 +1,4 @@
-import { getCurrentRunningApp } from '../../common';
+import { appInstanceMap, getCurrentRunningApp } from '../../common';
 
 const rawDocumentQuerySelector = Document.prototype.querySelector;
 const rawDocumentQuerySelectorAll = Document.prototype.querySelectorAll;
@@ -25,7 +25,8 @@ function querySelector(this: Document, selectors: string): any {
   if (!ins || !selectors || isUniqueElement(selectors)) {
     return rawDocumentQuerySelector.call(this, selectors);
   }
-  const container = ins.elementGetter() as HTMLElement;
+  const { elementGetter } = appInstanceMap.get(ins.name)!;
+  const container = elementGetter() as HTMLElement;
   if (container) {
     return container?.querySelector(selectors) ?? null;
   } else {
@@ -38,7 +39,8 @@ function querySelectorAll(this: Document, selectors: string): any {
   if (!ins || !selectors || isUniqueElement(selectors)) {
     return rawDocumentQuerySelectorAll.call(this, selectors);
   }
-  const container = ins.elementGetter() as HTMLElement;
+  const { elementGetter } = appInstanceMap.get(ins.name)!;
+  const container = elementGetter() as HTMLElement;
   return container?.querySelectorAll(selectors) ?? [];
 }
 
@@ -245,7 +247,7 @@ function patchGetElementsByClassName() {
   };
 }
 
-export function patchDocument() {
+export function patchDocumentPrototypeMethods() {
   const unPatchCreateElement = patchCreateElement();
   const unPatchQuerySelector = patchQuerySelector();
   const unPatchQuerySelectorAll = patchQuerySelectorAll();

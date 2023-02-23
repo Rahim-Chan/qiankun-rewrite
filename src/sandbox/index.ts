@@ -3,6 +3,7 @@
  * @since 2019-04-11
  */
 import type { Freer, Rebuilder, SandBox } from '../interfaces';
+import { appInstanceMap } from './common';
 import LegacySandbox from './legacy/sandbox';
 import { patchAtBootstrapping, patchAtMounting } from './patchers';
 import ProxySandbox from './proxySandbox';
@@ -42,9 +43,8 @@ export function createSandboxContainer(
 ) {
   let sandbox: SandBox;
   if (window.Proxy) {
-    sandbox = useLooseSandbox
-      ? new LegacySandbox(appName, globalContext)
-      : new ProxySandbox(appName, globalContext, elementGetter);
+    appInstanceMap.set(appName, { name: appName, elementGetter });
+    sandbox = useLooseSandbox ? new LegacySandbox(appName, globalContext) : new ProxySandbox(appName, globalContext);
   } else {
     sandbox = new SnapshotSandbox(appName);
   }
@@ -72,8 +72,8 @@ export function createSandboxContainer(
      * 也可能是从 unmount 之后再次唤醒进入 mount
      */
     async mount() {
+      appInstanceMap.set(appName, { name: appName, elementGetter });
       /* ------------------------------------------ 因为有上下文依赖（window），以下代码执行顺序不能变 ------------------------------------------ */
-
       /* ------------------------------------------ 1. 启动/恢复 沙箱------------------------------------------ */
       sandbox.active();
 
@@ -106,7 +106,6 @@ export function createSandboxContainer(
       // record the rebuilders of window side effects (event listeners or timers)
       // note that the frees of mounting phase are one-off as it will be re-init at next mounting
       sideEffectsRebuilders = [...bootstrappingFreers, ...mountingFreers].map((free) => free());
-
       sandbox.inactive();
     },
   };

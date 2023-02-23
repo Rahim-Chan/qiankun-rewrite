@@ -2,9 +2,11 @@ import { isBoundedFunction, isCallable, isConstructable } from '../utils';
 import { globals } from './globals';
 import { without } from 'lodash';
 
-export type AppInstance = { name: string; window: WindowProxy; elementGetter: () => HTMLElement | ShadowRoot };
+export type AppInstance = { name: string; window: WindowProxy };
 let currentRunningApp: AppInstance | null = null;
-export const appInstanceMap = new Map<string, AppInstance>();
+
+export type AppExt = { name: string; elementGetter: () => HTMLElement | ShadowRoot };
+export const appInstanceMap = new Map<string, AppExt>();
 
 /**
  * get the app that running tasks at current tick
