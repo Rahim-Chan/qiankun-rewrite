@@ -13,6 +13,12 @@ declare global {
     __QIANKUN_DEVELOPMENT__?: boolean;
     Zone?: CallableFunction;
   }
+  interface Document {
+    __TARGET_DOCUMENT__?: boolean;
+  }
+  interface Node {
+    __TARGET_DOCUMENT__?: boolean;
+  }
 }
 
 export type ObjectType = Record<string, any>;

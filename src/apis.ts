@@ -12,7 +12,10 @@ import type {
 import type { ParcelConfigObjectGetter } from './loader';
 import { loadApp } from './loader';
 import { doPrefetchStrategy } from './prefetch';
+import { markDocument } from './sandbox/patchers/patch/util';
 import { Deferred, getContainerXPath, toArray } from './utils';
+
+markDocument();
 
 let microApps: Array<RegistrableApp<Record<string, unknown>>> = [];
 

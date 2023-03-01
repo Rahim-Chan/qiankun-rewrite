@@ -34,7 +34,7 @@ declare global {
 }
 
 export const getAppWrapperHeadElement = (appWrapper: Element | ShadowRoot): Element => {
-  return appWrapper.querySelector(qiankunHeadTagName)!;
+  return Element.prototype.querySelector.call(appWrapper, qiankunHeadTagName)!;
 };
 
 export const getAppWrapperBodyElement = (appWrapper: Element | ShadowRoot): Element => {

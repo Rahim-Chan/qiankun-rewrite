@@ -8,6 +8,7 @@ import { nativeGlobal } from '../../../utils';
 import { getCurrentRunningApp } from '../../common';
 import { patchDocumentPrototypeMethods } from '../patch/patchDocument';
 import { patchElementPrototypeMethods } from '../patch/patchElement';
+import { isTargetNode } from '../patch/util';
 import type { ContainerConfig } from './common';
 import {
   getAppWrapperBodyElement,
@@ -48,7 +49,7 @@ function patchDocumentCreateElement() {
       const element = rawDocumentCreateElement.call(this, tagName, options);
       if (isHijackingTag(tagName)) {
         const { window: currentRunningSandboxProxy } = getCurrentRunningApp() || {};
-        if (currentRunningSandboxProxy) {
+        if (currentRunningSandboxProxy && isTargetNode.call(this)) {
           const proxyContainerConfig = proxyAttachContainerConfigMap.get(currentRunningSandboxProxy);
           if (proxyContainerConfig) {
             elementAttachContainerConfigMap.set(element, proxyContainerConfig);
@@ -105,7 +106,6 @@ export function patchStrictSandbox(
   const unPatchElementPrototypeMethods = patchElementPrototypeMethods();
 
   const unpatchDocumentCreate = patchDocumentCreateElement();
-
   const unpatchDynamicAppendPrototypeFunctions = patchHTMLDynamicAppendPrototypeFunctions(
     (element) => elementAttachContainerConfigMap.has(element),
     (element) => elementAttachContainerConfigMap.get(element)!,
@@ -120,10 +120,10 @@ export function patchStrictSandbox(
 
     // release the overwritten prototype after all the micro apps unmounted
     if (isAllAppsUnmounted()) {
-      unPatchElementPrototypeMethods();
-      unPatchDocument();
       unpatchDynamicAppendPrototypeFunctions();
       unpatchDocumentCreate();
+      unPatchElementPrototypeMethods();
+      unPatchDocument();
     }
 
     recordStyledComponentsCSSRules(dynamicStyleSheetElements);
