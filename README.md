@@ -4,77 +4,55 @@
   </a>
 </p>
 
-<p align="center">
-  <a href="https://www.npmjs.com/package/qiankun"><img src="https://img.shields.io/npm/v/qiankun.svg?style=flat-square" alt="npm version" /></a>
-  <a href="https://codecov.io/gh/umijs/qiankun"><img src="https://img.shields.io/codecov/c/github/umijs/qiankun.svg?style=flat-square" alt="coverage" /></a>
-  <a href="https://www.npmjs.com/package/qiankun"><img src="https://img.shields.io/npm/dt/qiankun.svg?style=flat-square" alt="npm downloads" /></a>
-  <a href="https://travis-ci.com/umijs/qiankun"><img src="https://img.shields.io/github/workflow/status/umijs/qiankun/CI.svg?style=flat-square" alt="build status" /></a>
-  <a href="https://github.com/umijs/dumi"><img src="https://img.shields.io/badge/docs%20by-dumi-blue" alt="dumi" /></a>
-</p>
+# qiankun-rewrite
 
-# qiankun（乾坤）
-
-> In Chinese, `qian(乾)` means heaven and `kun(坤)` earth. `qiankun` is the universe.
-
-Qiankun enables you and your teams to build next-generation and enterprise-ready web applications leveraging [Micro Frontends](https://micro-frontends.org/). It is inspired by and based on [single-spa](https://github.com/CanopyTax/single-spa).
+> 针对 qiankun 关于 Element, Document 原型链上部分方法打上补丁，从而满足元素隔离的需求。
 
 ## 🤔 Motivation
 
-A quick recap about the concept of `Micro Frontends`:
+当使用 qiankun 中`loadMicroApp`方法加载两个相同子应用时，其中会产生`样式冲突`、`选择器冲突`，由于 sandbox 中开启`strictStyleIsolation`模式会导致兼容性问题，进而选择了`experimentalStyleIsolation`模式来解决`样式冲突`的问题。
 
-> Techniques, strategies and recipes for building a **modern web app** with **multiple teams** using **different JavaScript frameworks**. — [Micro Frontends](https://micro-frontends.org/)
+> 而开启该模式会导致类似 antd 中 Modal 框样式[丢失的问题](https://github.com/umijs/qiankun/issues/1316)
 
-Qiankun was birthed internally in our group during the time web app development by distributed teams had turned to complete chaos. We faced every problem micro frontend was conceived to solve, so naturally, it became part of our solution.
+因此萌发了代理 Document\Element 原型链上的的方法，使得子应用操作元素的范围在缩小在其容器内，以下该项目的修改点，可以让你清楚评估风险：
 
-The path was never easy, we stepped on every challenge there could possibly be. Just to name a few:
+## 👀 Change Points
 
-- In what form do micro-apps publish static resources?
-- How does the framework integrate individual micro-apps?
-- How to ensure that sub-applications are isolated from one another (development independence and deployment independence) and runtime sandboxed?
-- Performance issues? What about public dependencies?
-- The list goes on long ...
+- 📍 基础版本：qiankun@2.8.2版本拓展。
+- 新增：`<qiankun-body>{template}</qiankun-body>`容器。
+- 新增：`appInstanceMap`用于存储 app 实例信息（最外层容器节点）。
+- 注入：`document`, `document.body`, `document.head`打上标记（用于判断是否需要执行 patch）
+- 补丁：Document\Element 原型链上的方法
+
+| Document                   | Element                |
+| -------------------------- | ---------------------- |
+| getElementById             | querySelector          |
+| getElementsByName          | querySelectorAll       |
+| getElementsByClassName     | getElementsByClassName |
+| getElementsByTagName       | getElementsByTagName   |
+| querySelector              | appendChild            |
+| querySelectorAll           | append                 |
+| createElement              | prepend                |
+| createElementNS            | insertBefore           |
+| rawDocumentCreateElementNS | cloneNode              |
+|                            | removeChild            |
+|                            | replaceChild           |
 
 After solving these common problems of micro frontends and lots of polishing and testing, we extracted the minimal viable framework of our solution, and named it `qiankun`, as it can contain and serve anything. Not long after, it became the cornerstone of hundreds of our web applications in production, and we decided to open-source it to save you the suffering.
-
-**TLDR: Qiankun is probably the most complete micro-frontend solution you ever met🧐.**
-
-## :sparkles: Features
-
-Qiankun inherits many benefits from [single-spa](https://github.com/CanopyTax/single-spa):
-
-- 📦 **Micro-apps Independent Deployment**
-- 🛴 **Lazy Load**
-- 📱 **Technology Agnostic**
-
-And on top of these, it offers:
-
-- 💃 **Elegant API**
-- 💪 **HTML Entry Access Mode**
-- 🛡 **Style Isolation**
-- 🧳 **JS Sandbox**
-- ⚡ **Prefetch Assets**
-- 🔌 **[Umi Plugin](https://github.com/umijs/plugins/tree/master/packages/plugin-qiankun) Integration**
 
 ## 📦 Installation
 
 ```shell
-$ yarn add qiankun  # or npm i qiankun -S
+$ yarn add qiankun-rewrite  # or npm i qiankun-rewrite -S
 ```
 
-## 📖 Documentation
+## 📖 TODO
 
-You can find the Qiankun documentation [on the website](https://qiankun.umijs.org/)
+- [x] 元素隔离
+- [ ] 路由响应隔离（doing）
+- [ ] history 隔离
 
-Check out the [Getting Started](https://qiankun.umijs.org/guide/getting-started) page for a quick overview.
-
-The documentation is divided into several sections:
-
-- [Tutorial](https://qiankun.umijs.org/cookbook)
-- [API Reference](https://qiankun.umijs.org/api)
-- [FAQ](https://qiankun.umijs.org/faq)
-- [Community](https://qiankun.umijs.org/#-community)
-
-## 💿 Examples
+## 💿 SelfTest
 
 Inside the `examples` folder, there is a sample Shell app and multiple mounted Micro FE apps. To get it running, first clone `qiankun`:
 
@@ -91,27 +69,10 @@ $ yarn examples:install
 $ yarn examples:start
 ```
 
-Visit `http://localhost:7099`.
+Visit `http://localhost:3000`.
 
-![](./examples/example.gif)
-
-## 🎯 Roadmap
-
-See [Qiankun 3.0 Roadmap](https://github.com/umijs/qiankun/discussions/1378)
-
-## 👥 Contributors
-
-Thanks to all the contributors!
-
-<a href="https://github.com/umijs/qiankun/graphs/contributors">
-  <img src="https://opencollective.com/qiankun/contributors.svg?width=960&button=false" alt="contributors" />
-</a>
+![](/examples/test.gif)
 
 ## 🎁 Acknowledgements
 
-- [single-spa](https://github.com/CanopyTax/single-spa) What an awesome meta-framework for micro-frontends!
-- [import-html-entry](https://github.com/kuitos/import-html-entry/) An assets loader that supports html entry.
-
-## 📄 License
-
-Qiankun is [MIT licensed](./LICENSE).
+- [MicroApp](https://zeroing.jd.com/) inspired by DOM sandbox!

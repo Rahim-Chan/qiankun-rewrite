@@ -1,23 +1,8 @@
 import './App.css';
-import { Card, Dropdown, MenuProps } from 'antd'
-import TestBox from './Test'
+import { Card, Button, Row, Col } from 'antd'
 import { loadMicroApp, MicroApp } from '../../../src';
 import { useState } from 'react';
 
-const items: MenuProps['items'] = [
-  {
-    label: '1st menu item',
-    key: '1',
-  },
-  {
-    label: '2nd menu item',
-    key: '2',
-  },
-  {
-    label: '3rd menu item',
-    key: '3',
-  },
-];
 
 function App() {
   const [app1, setApp1] = useState<MicroApp | null>()
@@ -29,6 +14,11 @@ function App() {
     } else {
       setApp1(loadMicroApp(
         { name: 'react16', entry: '//localhost:10086', container: '#react16' },
+        {
+          sandbox: {
+            experimentalStyleIsolation: true
+          }
+        }
 
       ))
     }
@@ -38,48 +28,39 @@ function App() {
       await app2.unmount()
       setApp2(null);
     } else {
-      // http://192.168.1.104:3001/app-tem
       setApp2(loadMicroApp(
         { name: 'react20', entry: '//localhost:10086', container: '#react20' },
+        {
+          sandbox: {
+            experimentalStyleIsolation: true
+          }
+        }
       ))
     }
   }
 
   return (
     <div className="App">
-      portal
-      <button onClick={() => {
-        const a = document.createElement('div')
-        console.log(document.body.appendChild, 'document.body.appendChild');
-
-        document.body.appendChild(a)
-      }}>onClick</button>
-      <Dropdown menu={{ items }} trigger={['contextMenu']}>
-        <div
-          className="site-dropdown-context-menu"
-          style={{
-            textAlign: 'center',
-            height: 200,
-            lineHeight: '200px',
-          }}
-        >
-          Right Click on here
-        </div>
-      </Dropdown>
-      <TestBox />
-      {/* <Space > */}
-      <Card >
-        <button onClick={loadA}>{app1 ? 'unLoadA' : 'loadA'}</button>
-        <div id="react16">
-        </div>
-      </Card>
-      <Card  >
-        <button onClick={loadB}>{app2 ? 'unLoadB' : 'loadB'}</button>
-        <div id="react20">
-
-        </div>
-      </Card>
-      {/* </Space> */}
+      <Button type='primary' onClick={loadA}>{app1 ? 'unLoadA' : 'loadA'}</Button>
+      <Button type='primary' onClick={loadB}>{app2 ? 'unLoadB' : 'loadB'}</Button>
+      <Button size='large' onClick={() => {
+        document.querySelectorAll('.qiankunCheck').forEach(i  => (i as HTMLElement).click())
+      }}>Test MicroApp
+      </Button>
+      <Row gutter={24}>
+        <Col span={12}>
+          <Card >
+              <div id="react16" />
+          </Card>
+        </Col>
+        <Col span={12}>
+          <Card >
+            <div id="react20" />
+          </Card>
+        </Col>
+      </Row>
+     
+    
     </div>
   );
 }
