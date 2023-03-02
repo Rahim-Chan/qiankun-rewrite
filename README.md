@@ -38,8 +38,6 @@
 |                            | removeChild            |
 |                            | replaceChild           |
 
-After solving these common problems of micro frontends and lots of polishing and testing, we extracted the minimal viable framework of our solution, and named it `qiankun`, as it can contain and serve anything. Not long after, it became the cornerstone of hundreds of our web applications in production, and we decided to open-source it to save you the suffering.
-
 ## 📦 Installation
 
 ```shell
